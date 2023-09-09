@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <title>Chat em tempo real</title>
+</head>
+<body>
+   <main class="main">
+        <h1>Chat em tempo real</h1>
+        <section class="box-chat">
+            <div class="bolinhaUsuarios">
+                <p class="usuariosCounter">0</p>
+            </div>
+            <section class="mensagens">
+            </section>
+
+            <form class="messages">
+                <input type="text" class="inputAddMessage" name="inputAddMessage" placeholder="Mensagem">
+                <button class="button" type="reset">Enviar</button>
+                <button class="img" type="reset"><i class="bi bi-file-earmark-image" style="color: white;"></i></button>
+            </form>
+
+            <form class="formIMG">
+                <input type="text" class="inputAddImage" name="inputAddImage" placeholder="URL da imagem">
+                <button class="button2" type="reset">Enviar</button>
+            </form>
+        </section>
+    </main>
+
+    <style>
+        *{
+            margin: 0;
+            bottom: 0;
+            font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+        }
+
+        :root{
+            --colorButton: rgb(24, 149, 252);
+            --colorButtonHover: rgb(23, 139, 235);
+            --colorShadow: rgba(22, 22, 22, 0.219);
+        }
+
+        .box-chat{
+            background-color: whitesmoke;
+            width: 650px;
+            height: 430px;
+            max-height: 450px;
+            position: relative;
+            padding: 10px;
+            border-radius: 20px;
+            box-shadow: 1px 2px 4px var(--colorShadow);
+        }
+
+        .mensagens{
+            position: absolute;
+            width: 96%;
+            top: 10px;
+            overflow: auto;
+            height: 340px;
+        }
+
+        .messages{
+            display: flex;
+            justify-content: center;
+            align-items: end;
+            height: 40vh;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .bolinhaUsuarios{
+            background-color: rgb(230, 2, 2);
+            border-radius: 20px;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transform: translate(30%, -40%);
+        }
+
+        .usuariosCounter{
+            color: white;
+            font-weight: 600;
+        }
+
+        input{
+            padding: 10px;
+            width: 530px;
+            border-radius: 10px 0px 0px 10px;
+            outline: none;
+            border: 1px solid grey;
+        }
+
+        .button{
+            background-color: var(--colorButton);
+            border-radius: 0px  20px 20px 0px;
+            border: 1px solid grey;
+            padding-left: 10px;
+            color: rgb(238, 238, 238);
+            padding: 10px;
+            font-weight: 600;
+            padding-right: 10px;
+            cursor: pointer;
+        }
+
+        .button2{
+            background-color: var(--colorButton);
+            border-radius: 0px  20px 20px 0px;
+            border: 1px solid grey;
+            color: rgb(238, 238, 238);
+            padding: 10px;
+            font-weight: 600;
+            padding-right: 10px;
+            cursor: pointer;
+        }
+
+        .img{
+            border-radius: 50px;
+            padding: 10px;
+            padding-left: 15px;
+            padding-right: 15px;
+            background-color: rgb(104, 104, 104);
+            border: 1px solid black;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .img:hover{
+            background-color: black;
+            border: 1px solid rgb(104, 104, 104);
+            transition: all 1s;
+        }
+
+        .formIMG{
+            display: none;
+        }
+
+        .button:hover{
+            background-color: var(--colorButtonHover);
+        }
+
+        .mensagens p{
+            list-style-type: none;
+            background-color: white;
+            margin: 5px;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 1px 0px 3px var(--colorShadow);
+        }
+
+        .main{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+        }
+    </style>
+    <script>
+        const socket = io()
+        const btn = document.querySelector('.button')
+        const btn2 = document.querySelector('.button2')
+        let input = document.querySelector('.inputAddMessage')
+        let inputImg = document.querySelector('.inputAddImage')
+        const messageBox = document.querySelector('.mensagens')
+        const img = document.querySelector('.img')
+
+        img.addEventListener('click', () => {
+            let form = document.querySelector('.formIMG')
+
+            if (form.style.display == 'block') {
+                form.style.display = 'none'
+            } else {
+                form.style.display = 'block'
+            }
+        })
+        
+        btn.addEventListener('click', () => {
+            if (input.value) {
+                socket.emit('chat message', input.value)
+                input.value = ''
+            }
+        })
+
+        btn2.addEventListener('click', () => {
+            if (inputImg.value) {
+                socket.emit('img message', inputImg.value)
+                inputImg.value = ''
+            }
+        })
+
+        socket.on('chat message', (msg) => {
+            let paragrafo = document.createElement('p')
+
+            paragrafo.innerHTML = msg
+
+            messageBox.appendChild(paragrafo)
+        })
+
+        socket.on('img message', (imgLink) => {
+            let img = document.createElement('img')
+
+            img.src = imgLink
+            img.style.width = '240px'
+            img.style.height = '160px'
+
+            messageBox.appendChild(img)
+        })
+
+        socket.on('users counter', (users) => {
+            let usersCounter = document.querySelector('.usuariosCounter')
+
+            usersCounter.innerHTML = users
+        })
+    </script>
+</body>
+</html>
