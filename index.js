@@ -36,6 +36,11 @@ io.on('connection', (socket) => {
 })
 
 
+server.listen(80, () => {
+    console.log('Server rodando na porta 3000')
+})
+
+
 server.listen(3000, () => {
     console.log('Server rodando na porta 3000')
 })
